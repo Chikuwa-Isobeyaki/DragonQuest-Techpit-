@@ -1,8 +1,6 @@
-class Brave
-  attr_reader :name, :offense, :defense
-  attr_accessor :hp
-
-  SPECIAL_ATTACK_CONSTANT = 1.5
+class Character
+  attr_reader :offense, :defense
+  attr_accessor :hp, :name
 
   def initialize(**params)
     @name = params[:name]
@@ -10,6 +8,20 @@ class Brave
     @offense = params[:offense]
     @defense = params[:defense]
   end
+end
+
+class Brave < Character
+  # attr_reader :name, :offense, :defense
+  # attr_accessor :hp
+
+  # def initialize(**params)
+  #   @name = params[:name]
+  #   @hp = params[:hp]
+  #   @offense = params[:offense]
+  #   @defense = params[:defense]
+  # end
+
+  SPECIAL_ATTACK_CONSTANT = 1.5
 
   def attack(monster)
     puts "#{@name}の攻撃"
@@ -52,6 +64,9 @@ class Brave
       target = params[:target]
 
       target.hp -= damage
+
+      target.hp = 0 if target.hp < 0
+
       puts "#{target.name}は#{damage}のダメージを受けた"
     end
 
@@ -60,18 +75,25 @@ class Brave
     end
 
 end
-class Monster
-  attr_reader :offense, :defense
-  attr_accessor :hp, :name
+class Monster < Character
+  # attr_reader :offense, :defense
+  # attr_accessor :hp, :name
 
   POWER_UP_RATE = 1.5
   CALC_HALF_HP = 0.5
 
   def initialize(**params)
-    @name = params[:name]
-    @hp = params[:hp]
-    @offense = params[:offense]
-    @defense = params[:defense]
+    # @name = params[:name]
+    # @hp = params[:hp]
+    # @offense = params[:offense]
+    # @defense = params[:defense]
+
+    super(
+      name: params[:name],
+      hp: params[:hp],
+      offense: params[:offense],
+      defense: params[:defense]
+    )
 
     @transform_flag = false
     @trigger_of_transform = params[:hp] * CALC_HALF_HP
@@ -106,6 +128,9 @@ class Monster
       target = params[:target]
 
       target.hp -= damage
+
+      target.hp = 0 if target.hp < 0
+
       puts "#{target.name}は#{damage}のダメージを受けた"
     end
 
@@ -125,5 +150,22 @@ end
 
 brave = Brave.new(name: "テリー", hp: 500, offense: 150, defense: 100)
 monster = Monster.new(name: "スライム", hp: 250, offense: 200, defense: 100)
-brave.attack(monster)
-monster.attack(brave)
+loop do
+  brave.attack(monster)
+  break if monster.hp <= 0
+
+  monster.attack(brave)
+  break if brave.hp <= 0
+end
+
+battle_result = brave.hp > 0
+
+if battle_result
+  exp = (monster.offense + monster.defense) * 2
+  gold = (monster.offense + monster.defense) * 3
+  puts "#{brave.name}はたたかいに勝った"
+  puts "#{exp}の経験値と#{gold}ゴールドを獲得した"
+else
+  puts "#{brave.name}はたたかいに負けた"
+  puts "目の前が真っ暗になった"
+end
